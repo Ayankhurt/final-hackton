@@ -48,26 +48,9 @@ console.log('🌐 CORS Configuration:', {
 
 // More permissive CORS for Vercel
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowed list
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      return origin === allowedOrigin || origin.startsWith(allowedOrigin);
-    });
-    
-    if (isAllowed) {
-      console.log('✅ CORS allowing origin:', origin);
-      callback(null, true);
-    } else {
-      console.log('❌ CORS blocked origin:', origin);
-      console.log('Allowed origins:', allowedOrigins);
-      // For debugging, let's be more permissive temporarily
-      console.log('⚠️ Temporarily allowing origin for debugging');
-      callback(null, true);
-    }
-  },
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : ['http://localhost:3000', 'https://final-hackton-frontend.vercel.app/'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
