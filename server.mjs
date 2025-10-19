@@ -31,14 +31,56 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// CORS configuration
+// CORS configuration - More permissive for Vercel deployment
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://final-hackton-frontend.vercel.app',
+      'https://final-hackton-frontend.vercel.app/',
+      process.env.FRONTEND_URL
+    ].filter(Boolean) // Remove undefined values
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
+console.log('🌐 CORS Configuration:', {
+  environment: process.env.NODE_ENV,
+  allowedOrigins: allowedOrigins,
+  frontendUrl: process.env.FRONTEND_URL
+});
+
+// More permissive CORS for Vercel
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      return origin === allowedOrigin || origin.startsWith(allowedOrigin);
+    });
+    
+    if (isAllowed) {
+      console.log('✅ CORS allowing origin:', origin);
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      // For debugging, let's be more permissive temporarily
+      console.log('⚠️ Temporarily allowing origin for debugging');
+      callback(null, true);
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: ['Authorization'],
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 
 // Rate limiting
