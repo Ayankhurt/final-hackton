@@ -43,14 +43,27 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
 console.log('🌐 CORS Configuration:', {
   environment: process.env.NODE_ENV,
   allowedOrigins: allowedOrigins,
-  frontendUrl: process.env.FRONTEND_URL
+  frontendUrl: process.env.FRONTEND_URL,
+  productionOrigins: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://final-hackton-frontend.vercel.app',
+        process.env.FRONTEND_URL
+      ].filter(Boolean)
+    : 'Not in production'
 });
 
 // More permissive CORS for Vercel
+const corsOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://final-hackton-frontend.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean) // Remove undefined values
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
+console.log('🔧 Final CORS Origins:', corsOrigins);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : ['http://localhost:3000', 'https://final-hackton-frontend.vercel.app/'],
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
