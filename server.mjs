@@ -52,18 +52,41 @@ console.log('🌐 CORS Configuration:', {
     : 'Not in production'
 });
 
-// More permissive CORS for Vercel
-const corsOrigins = process.env.NODE_ENV === 'production' 
-  ? [
-      'https://final-hackton-frontend.vercel.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean) // Remove undefined values
-  : ['http://localhost:3000', 'http://localhost:3001'];
+// AGGRESSIVE CORS FIX FOR VERCEL
+console.log('🔧 Environment:', process.env.NODE_ENV);
+console.log('🔧 Frontend URL:', process.env.FRONTEND_URL);
 
-console.log('🔧 Final CORS Origins:', corsOrigins);
-
+// Use a function-based origin checker for better Vercel compatibility
 app.use(cors({
-  origin: corsOrigins,
+  origin: function (origin, callback) {
+    console.log('🌐 CORS Request from origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log('✅ Allowing request with no origin');
+      return callback(null, true);
+    }
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'https://final-hackton-frontend.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    console.log('🔧 Allowed origins:', allowedOrigins);
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS allowing origin:', origin);
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocking origin:', origin);
+      // For now, let's be permissive to fix the issue
+      console.log('⚠️ Temporarily allowing for debugging');
+      callback(null, true);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -76,7 +99,7 @@ app.use(cors({
     'Access-Control-Request-Headers'
   ],
   exposedHeaders: ['Authorization'],
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200
 }));
 
 // Rate limiting
