@@ -1,25 +1,14 @@
 {
   "version": 2,
-  "name": "healthmate-backend",
+  "builds": [
+    {
+      "src": "server.mjs", 
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "server.mjs"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "server.mjs": {
-      "maxDuration": 30
-    }
-  },
-  "regions": ["iad1"],
-  "framework": null,
-  "outputDirectory": null,
-  "installCommand": "npm install",
-  "buildCommand": null,
-  "devCommand": "npm run dev",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
+  ]
 }
